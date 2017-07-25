@@ -122,16 +122,23 @@ func releaseMock(opts *releaseOptions) *release.Release {
 }
 
 // releaseCmd is a command that works with a FakeClient
-type releaseCmd func(c *helm.FakeClient, out io.Writer) *cobra.Command
+type releaseCmd func(c *helm.FakeClient, in io.Reader, out io.Writer) *cobra.Command
 
 // runReleaseCases runs a set of release cases through the given releaseCmd.
-func runReleaseCases(t *testing.T, tests []releaseCase, rcmd releaseCmd) {
+func  runReleaseCases(t *testing.T, tests []releaseCase, rcmd releaseCmd) {
 	var buf bytes.Buffer
 	for _, tt := range tests {
 		c := &helm.FakeClient{
 			Rels: []*release.Release{tt.resp},
 		}
-		cmd := rcmd(c, &buf)
+
+		var in io.Reader
+		if tt.in == nil {
+			in = strings.NewReader("")
+		} else {
+			in = tt.in
+		}
+		cmd := rcmd(c, in, &buf)
 		cmd.ParseFlags(tt.flags)
 		err := cmd.RunE(cmd, tt.args)
 		if (err != nil) != tt.err {
@@ -150,6 +157,7 @@ type releaseCase struct {
 	name  string
 	args  []string
 	flags []string
+	in	  io.Reader
 	// expected is the string to be matched. This supports regular expressions.
 	expected string
 	err      bool

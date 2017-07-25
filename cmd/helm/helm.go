@@ -92,6 +92,7 @@ func newRootCmd(args []string) *cobra.Command {
 
 	settings.AddFlags(flags)
 
+	in := os.Stdin
 	out := cmd.OutOrStdout()
 
 	cmd.AddCommand(
@@ -111,11 +112,11 @@ func newRootCmd(args []string) *cobra.Command {
 		addFlagsTLS(newDeleteCmd(nil, out)),
 		addFlagsTLS(newGetCmd(nil, out)),
 		addFlagsTLS(newHistoryCmd(nil, out)),
-		addFlagsTLS(newInstallCmd(nil, out)),
+		addFlagsTLS(newInstallCmd(nil, in, out)),
 		addFlagsTLS(newListCmd(nil, out)),
 		addFlagsTLS(newRollbackCmd(nil, out)),
 		addFlagsTLS(newStatusCmd(nil, out)),
-		addFlagsTLS(newUpgradeCmd(nil, out)),
+		addFlagsTLS(newUpgradeCmd(nil, in, out)),
 
 		addFlagsTLS(newReleaseTestCmd(nil, out)),
 		addFlagsTLS(newResetCmd(nil, out)),

@@ -35,16 +35,16 @@ func TestInstall(t *testing.T) {
 			name:     "basic install",
 			args:     []string{"testdata/testcharts/alpine"},
 			flags:    strings.Split("--name aeneas", " "),
-			expected: "aeneas",
 			resp:     releaseMock(&releaseOptions{name: "aeneas"}),
+			expected: "aeneas",
 		},
 		// Install, no hooks
 		{
 			name:     "install without hooks",
 			args:     []string{"testdata/testcharts/alpine"},
 			flags:    strings.Split("--name aeneas --no-hooks", " "),
-			expected: "juno",
 			resp:     releaseMock(&releaseOptions{name: "juno"}),
+			expected: "juno",
 		},
 		// Install, values from cli
 		{
@@ -75,6 +75,15 @@ func TestInstall(t *testing.T) {
 			name:     "install with values",
 			args:     []string{"testdata/testcharts/alpine"},
 			flags:    strings.Split("-f testdata/testcharts/alpine/extra_values.yaml -f testdata/testcharts/alpine/more_values.yaml", " "),
+			resp:     releaseMock(&releaseOptions{name: "virgil"}),
+			expected: "virgil",
+		},
+		// Install, values from stdin
+		{
+			name:	  "install with values from stdin",
+			args: 	  []string{"testdata/testcharts/alpine"},
+			flags:	  strings.Split("-f -", " "),
+			//in:		  strings.Reader()
 			resp:     releaseMock(&releaseOptions{name: "virgil"}),
 			expected: "virgil",
 		},
@@ -148,8 +157,8 @@ func TestInstall(t *testing.T) {
 		},
 	}
 
-	runReleaseCases(t, tests, func(c *helm.FakeClient, out io.Writer) *cobra.Command {
-		return newInstallCmd(c, out)
+	runReleaseCases(t, tests, func(c *helm.FakeClient, in io.Reader, out io.Writer) *cobra.Command {
+		return newInstallCmd(c, in, out)
 	})
 }
 

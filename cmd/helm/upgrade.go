@@ -55,6 +55,7 @@ set for a key called 'foo', the 'newbar' value would take precedence:
 type upgradeCmd struct {
 	release      string
 	chart        string
+	in 			 io.Reader
 	out          io.Writer
 	client       helm.Interface
 	dryRun       bool
@@ -80,9 +81,10 @@ type upgradeCmd struct {
 	caFile   string
 }
 
-func newUpgradeCmd(client helm.Interface, out io.Writer) *cobra.Command {
+func newUpgradeCmd(client helm.Interface, in io.Reader, out io.Writer) *cobra.Command {
 
 	upgrade := &upgradeCmd{
+		in: 	in,
 		out:    out,
 		client: client,
 	}
@@ -173,7 +175,7 @@ func (u *upgradeCmd) run() error {
 		}
 	}
 
-	rawVals, err := vals(u.valueFiles, u.values)
+	rawVals, err := vals(u.valueFiles, u.values, u.in)
 	if err != nil {
 		return err
 	}

@@ -75,8 +75,8 @@ To check the generated manifests of a release without installing the chart,
 the '--debug' and '--dry-run' flags can be combined. This will still require a
 round-trip to the Tiller server.
 
-If --verify is set, the chart MUST have a provenance file, and the provenenace
-fall MUST pass all verification steps.
+If --verify is set, the chart MUST have a provenance file, and the provenance
+file MUST pass all verification steps.
 
 There are four different ways you can express the chart you want to install:
 
@@ -109,6 +109,7 @@ type installCmd struct {
 	replace      bool
 	verify       bool
 	keyring      string
+	in 			 io.Reader
 	out          io.Writer
 	client       helm.Interface
 	values       []string
@@ -141,8 +142,9 @@ func (v *valueFiles) Set(value string) error {
 	return nil
 }
 
-func newInstallCmd(c helm.Interface, out io.Writer) *cobra.Command {
+func newInstallCmd(c helm.Interface, in io.Reader, out io.Writer) *cobra.Command {
 	inst := &installCmd{
+		in:		in,
 		out:    out,
 		client: c,
 	}
@@ -204,7 +206,7 @@ func (i *installCmd) run() error {
 		i.namespace = defaultNamespace()
 	}
 
-	rawVals, err := vals(i.valueFiles, i.values)
+	rawVals, err := vals(i.valueFiles, i.values, i.in)
 	if err != nil {
 		return err
 	}
@@ -304,18 +306,26 @@ func mergeValues(dest map[string]interface{}, src map[string]interface{}) map[st
 
 // vals merges values from files specified via -f/--values and
 // directly via --set, marshaling them to YAML
-func vals(valueFiles valueFiles, values []string) ([]byte, error) {
+func vals(valueFiles valueFiles, values []string, in io.Reader) ([]byte, error) {
 	base := map[string]interface{}{}
+	stdinFlag := "-"
 
 	// User specified a values files via -f/--values
 	for _, filePath := range valueFiles {
+		var byteSlice []byte
+		var err error
 		currentMap := map[string]interface{}{}
-		bytes, err := ioutil.ReadFile(filePath)
+
+		if filePath == stdinFlag {
+			byteSlice, err = ioutil.ReadAll(in)
+		} else {
+			byteSlice, err = ioutil.ReadFile(filePath)
+		}
 		if err != nil {
 			return []byte{}, err
 		}
 
-		if err := yaml.Unmarshal(bytes, &currentMap); err != nil {
+		if err := yaml.Unmarshal(byteSlice, &currentMap); err != nil {
 			return []byte{}, fmt.Errorf("failed to parse %s: %s", filePath, err)
 		}
 		// Merge with the previous map

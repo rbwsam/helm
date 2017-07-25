@@ -153,8 +153,8 @@ func TestUpgradeCmd(t *testing.T) {
 		},
 	}
 
-	cmd := func(c *helm.FakeClient, out io.Writer) *cobra.Command {
-		return newUpgradeCmd(c, out)
+	cmd := func(c *helm.FakeClient, in io.Reader, out io.Writer) *cobra.Command {
+		return newUpgradeCmd(c, in, out)
 	}
 
 	runReleaseCases(t, tests, cmd)
