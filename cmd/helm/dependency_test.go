@@ -40,6 +40,11 @@ func TestDependencyListCmd(t *testing.T) {
 			expect: "WARNING: no requirements at ",
 		},
 		{
+			name: "Requirement unpacked",
+			args: []string{"testdata/testcharts/chart-decompressed-requirement"},
+			expect: "NAME  \tVERSION\tREPOSITORY   \tSTATUS \nalpine\t0.1.0  \tfile://..\tunpacked\n\n",
+		},
+		{
 			name: "Requirements in chart dir",
 			args: []string{"testdata/testcharts/reqtest"},
 			expect: "NAME        \tVERSION\tREPOSITORY                \tSTATUS  \n" +
