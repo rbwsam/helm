@@ -18,21 +18,21 @@ package lint2
 
 import "fmt"
 
-type ChartFile struct {
+type ValuesFile struct {
 	path *string
 }
 
-func newChartFile(path *string) *ChartFile {
-	return &ChartFile{path}
+func NewValuesFile(path *string) *ValuesFile {
+	return &ValuesFile{path}
 }
 
-func (cf *ChartFile) Lint() ([]string, error) {
-	exists, err := fileExists(*cf.path)
+func (vf *ValuesFile) Lint() ([]string, error) {
+	exists, err := fileExists(*vf.path)
 	if err != nil {
 		return []string{}, err
 	}
 	if !exists {
-		return []string{}, fmt.Errorf("'%s' does not exist", *cf.path)
+		return []string{}, fmt.Errorf("'%s' does not exist", *vf.path)
 	}
 	return []string{}, nil
 }

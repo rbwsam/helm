@@ -16,23 +16,29 @@ limitations under the License.
 
 package lint2
 
-import (
-	"fmt"
-)
+import "fmt"
 
 // ChartDir encapsulates a linting run of a particular chart directory.
-type ChartDir struct {
-	path string
+type chartDir struct {
+	path *string
 }
 
-// NewChartDir returns a new ChartDir with the given path.
-func NewChartDir(path string) (*ChartDir, error) {
-	exists, err := dirExists(path)
+func newChartDir(path *string) *chartDir {
+	return &chartDir{path}
+}
+
+// Lint lints the ChartDir and relevant files within it
+func (cd *chartDir) Lint() ([]string, error) {
+	return cd.exists()
+}
+
+func (cd *chartDir) exists() ([]string, error) {
+	exists, err := dirExists(*cd.path)
 	if err != nil {
-		return &ChartDir{}, err
+		return []string{}, err
 	}
-	if exists {
-		return &ChartDir{path}, nil
+	if !exists {
+		return []string{}, fmt.Errorf("'%s' does not exist", *cd.path)
 	}
-	return &ChartDir{}, fmt.Errorf("'%s' does not exist", path)
+	return []string{}, nil
 }

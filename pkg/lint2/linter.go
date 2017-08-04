@@ -16,23 +16,23 @@ limitations under the License.
 
 package lint2
 
-import "fmt"
-
-type ChartFile struct {
-	path *string
-}
-
-func newChartFile(path *string) *ChartFile {
-	return &ChartFile{path}
-}
-
-func (cf *ChartFile) Lint() ([]string, error) {
-	exists, err := fileExists(*cf.path)
-	if err != nil {
-		return []string{}, err
+// Linter lints the chart files that exist at the given path
+func Linter(chartPath *string) ([]string, error) {
+	var violations []string
+	linters := []linter{
+		newChartDir(chartPath),
 	}
-	if !exists {
-		return []string{}, fmt.Errorf("'%s' does not exist", *cf.path)
+
+	for _, l := range linters {
+		v, err := l.Lint()
+		// If we encounter an error, bail out immediately
+		if err != nil {
+			return violations, err
+		}
+		// If we get violations, add them to the list
+		if len(v) > 0 {
+			violations = append(violations, v...)
+		}
 	}
-	return []string{}, nil
+	return violations, nil
 }

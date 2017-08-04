@@ -17,28 +17,25 @@ limitations under the License.
 package lint2
 
 import (
-	"fmt"
 	"github.com/stretchr/testify/assert"
 	"testing"
+	"fmt"
 )
 
-func TestNewChartDir(t *testing.T) {
+func TestChartDir_Lint(t *testing.T) {
 	path := "testdata/albatross"
-	cd, err := NewChartDir(path)
-	assert.Equal(t, path, cd.path)
+	cd := newChartDir(&path)
+	violations, err := cd.Lint()
+
+	assert.Equal(t, []string{}, violations)
 	assert.Nil(t, err)
 }
 
-func TestNewChartDir_NotExist(t *testing.T) {
-	path := "somewhere/fake"
-	_, err := NewChartDir(path)
-	expected := fmt.Errorf("'%s' does not exist", path)
-	assert.Equal(t, expected, err)
+func TestChartDir_Lint_notExist(t *testing.T) {
+	path := "nowhere/real"
+	cd := newChartDir(&path)
+	_, err := cd.Lint()
+
+	assert.Equal(t, fmt.Errorf("'%s' does not exist", path), err)
 }
 
-func TestNewChartDir_NotDir(t *testing.T) {
-	path := "testdata/albatross/Chart.yaml"
-	_, err := NewChartDir(path)
-	expected := fmt.Errorf("'%s' is not a directory", path)
-	assert.Equal(t, expected, err)
-}
