@@ -18,7 +18,6 @@ package lint2
 
 import "fmt"
 
-// ChartDir encapsulates a linting run of a particular chart directory.
 type chartDir struct {
 	path *string
 }
@@ -27,18 +26,23 @@ func newChartDir(path *string) *chartDir {
 	return &chartDir{path}
 }
 
-// Lint lints the ChartDir and relevant files within it
-func (cd *chartDir) Lint() ([]string, error) {
+func (cd *chartDir) Load() error {
 	return cd.exists()
 }
 
-func (cd *chartDir) exists() ([]string, error) {
+// Lint lints the ChartDir
+func (cd *chartDir) Lint() []error {
+	// No linting necessary for a directory
+	return []error{}
+}
+
+func (cd *chartDir) exists() error {
 	exists, err := dirExists(*cd.path)
 	if err != nil {
-		return []string{}, err
+		return err
 	}
 	if !exists {
-		return []string{}, fmt.Errorf("'%s' does not exist", *cd.path)
+		return fmt.Errorf("'%s' does not exist", *cd.path)
 	}
-	return []string{}, nil
+	return nil
 }

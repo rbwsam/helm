@@ -16,6 +16,29 @@ limitations under the License.
 
 package lint2
 
+type validator func() error
+
 type linter interface {
-	Lint() ([]string, error)
+	Load() error
+	Lint() []error
+}
+
+// Lint lints the chart files that exist at the given path
+func Lint(chartPath *string) []error {
+	linters := []linter{
+		newChartDir(chartPath),
+		newChartFile(chartPath),
+	}
+	var violations []error
+	for _, l := range linters {
+		if loadErr := l.Load(); loadErr != nil {
+			violations = append(violations, loadErr)
+			// Could not load, skip linting
+			continue
+		}
+		if lintErrs := l.Lint(); lintErrs != nil {
+			violations = append(violations, lintErrs...)
+		}
+	}
+	return violations
 }

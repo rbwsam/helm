@@ -17,11 +17,12 @@ limitations under the License.
 package lint2
 
 import (
+	"fmt"
 	"github.com/stretchr/testify/assert"
 	"testing"
-	"fmt"
 )
 
+// FIXME
 func TestChartDir_Lint(t *testing.T) {
 	path := "testdata/albatross"
 	cd := newChartDir(&path)
@@ -31,6 +32,7 @@ func TestChartDir_Lint(t *testing.T) {
 	assert.Nil(t, err)
 }
 
+// FIXME
 func TestChartDir_Lint_notExist(t *testing.T) {
 	path := "nowhere/real"
 	cd := newChartDir(&path)
@@ -38,4 +40,3 @@ func TestChartDir_Lint_notExist(t *testing.T) {
 
 	assert.Equal(t, fmt.Errorf("'%s' does not exist", path), err)
 }
-
