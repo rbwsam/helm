@@ -16,18 +16,12 @@ limitations under the License.
 
 package lint2
 
-import "fmt"
-
 type violation struct {
-	Severity int
-	Path     string
-	Err      error
-}
-
-func (v violation) Error() string {
-	return fmt.Sprintf("[%s] %s: %s", sev[v.Severity], v.Path, v.Err.Error())
+	severity int
+	path     string
+	err      error
 }
 
 func newViolation(severity int, path string, err error) violation {
-	return violation{Severity: severity, Path: path, Err: err}
+	return violation{severity,path, err}
 }

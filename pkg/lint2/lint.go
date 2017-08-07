@@ -16,12 +16,7 @@ limitations under the License.
 
 package lint2
 
-import (
-	"k8s.io/helm/pkg/lint2/validations"
-	"path"
-)
-
-// Severity indicates the severity of a Violation.
+// Severity indicatest the severity of a Message.
 const (
 	// UnknownSev indicates that the severity of the error is unknown, and should not stop processing.
 	UnknownSev = iota
@@ -36,34 +31,13 @@ const (
 // sev matches the *Sev states.
 var sev = []string{"UNKNOWN", "INFO", "WARNING", "ERROR"}
 
-type runnerFunc func()
+type linterFn func() error
 
-type linterFunc func(path string) error
-
-// All lints all of the relevant files in `chartPath`
-func All(chartPath string) result {
-	res := newResult(chartPath)
-	chartFilePath := path.Join(chartPath, "Chart.yaml")
-
-	//List of linters with paths and severity levels
-	runners := []runnerFunc{
-		runner(res, ErrorSev, chartFilePath, validations.NotDir),
-	}
-
-	for _, r := range runners {
-		r()
-	}
-	return res
+type scoredLinter struct {
+	severity int
+	linter   linterFn
 }
 
-func runner(res result, sev int, path string, lin linterFunc) runnerFunc {
-	return func() {
-		if err := lin(path); err != nil {
-			res.Violations = append(res.Violations, newViolation(sev, path, err))
-
-			if sev > res.HighestSeverity {
-				res.HighestSeverity = sev
-			}
-		}
-	}
+func newScoredLinter(severity int, linter linterFn) scoredLinter {
+	return scoredLinter{severity, linter}
 }
