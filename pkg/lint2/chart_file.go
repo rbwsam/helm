@@ -63,7 +63,7 @@ func (cf *chartFile) Lint() []error {
 
 	var violations []error
 	for _, v := range validators {
-		if err := v(); v != nil {
+		if err := v(); err != nil {
 			violations = append(violations, err)
 		}
 	}
@@ -89,7 +89,7 @@ func (cf *chartFile) validateName() error {
 }
 
 func (cf *chartFile) validateNameDirMatch() error {
-	dirName := filepath.Base(*cf.path)
+	dirName := filepath.Base(filepath.Join(*cf.path, "../"))
 	if cf.metadata.Name != dirName {
 		return fmt.Errorf("directory name (%s) and chart name (%s) must be the same", dirName, cf.metadata.Name)
 	}

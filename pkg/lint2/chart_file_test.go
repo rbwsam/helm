@@ -22,33 +22,32 @@ import (
 	"testing"
 )
 
-func TestChartDir_Load(t *testing.T) {
-	path := "testdata/albatross"
-	cd := newChartDir(&path)
-	err := cd.Load()
+func TestChartFile_Load(t *testing.T) {
+	path := "testdata/albatross/Chart.yaml"
+	cf := newChartFile(&path)
+	err := cf.Load()
 	assert.Nil(t, err)
 }
 
-func TestChartDir_Load_missing(t *testing.T) {
-	path := "nowhere/fake"
-	cd := newChartDir(&path)
-	err := cd.Load()
+func TestChartFile_Load_missing(t *testing.T) {
+	path := "nowhere/fake/Chart.yaml"
+	cf := newChartFile(&path)
+	err := cf.Load()
 	assert.Equal(t, fmt.Errorf("'%s' does not exist", path), err)
 }
 
-func TestChartDir_Load_notDir(t *testing.T) {
-	path := "testdata/albatross/Chart.yaml"
-	cd := newChartDir(&path)
-	err := cd.Load()
-	assert.Equal(t, fmt.Errorf("'%s' is not a directory", path), err)
+func TestChartFile_Load_notFile(t *testing.T) {
+	path := "testdata/albatross"
+	cf := newChartFile(&path)
+	err := cf.Load()
+	assert.Equal(t, fmt.Errorf("'%s' is a directory", path), err)
 }
 
-func TestChartDir_Lint(t *testing.T) {
-	path := "testdata/albatross"
-	cd := newChartDir(&path)
-
-	if err := cd.Load(); assert.Nil(t, err) {
-		errs := cd.Lint()
+func TestChartFile_Lint(t *testing.T) {
+	path := "testdata/albatross/Chart.yaml"
+	cf := newChartFile(&path)
+	if err := cf.Load(); assert.Nil(t, err) {
+		errs := cf.Lint()
 		assert.Empty(t, errs)
 	}
 }
