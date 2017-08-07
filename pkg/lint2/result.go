@@ -16,36 +16,13 @@ limitations under the License.
 
 package lint2
 
-import (
-	"fmt"
-	"os"
-)
-
-func dirExists(path string) (bool, error) {
-	info, err := os.Stat(path)
-	if err != nil {
-		if os.IsNotExist(err) {
-			return false, nil
-		}
-		return false, err
-	}
-	if info.IsDir() {
-		return true, nil
-	}
-	return false, fmt.Errorf("'%s' is not a directory", path)
+// The result of linting a single chart dir
+type result struct {
+	ChartDir        string      // Path to the chart dir
+	HighestSeverity int         // Highest severity in the list of violations
+	Violations      []violation // List of violations across various files
 }
 
-func fileExists(path string) (bool, error) {
-	info, err := os.Stat(path)
-	if err != nil {
-		if os.IsNotExist(err) {
-			return false, nil
-		}
-		return false, err
-	}
-	if info.IsDir() {
-		return false, fmt.Errorf("'%s' is a directory", path)
-	}
-	return true, nil
-
+func newResult(path string) result {
+	return result{ChartDir: path, HighestSeverity: 0, Violations: []violation{}}
 }

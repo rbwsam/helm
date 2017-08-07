@@ -18,31 +18,16 @@ package lint2
 
 import "fmt"
 
-type chartDir struct {
-	path *string
+type violation struct {
+	Severity int
+	Path     string
+	Err      error
 }
 
-func newChartDir(path *string) *chartDir {
-	return &chartDir{path}
+func (v violation) Error() string {
+	return fmt.Sprintf("[%s] %s: %s", sev[v.Severity], v.Path, v.Err.Error())
 }
 
-func (cd *chartDir) Load() error {
-	return cd.exists()
-}
-
-// Lint lints the ChartDir
-func (cd *chartDir) Lint() []error {
-	// No linting necessary for a directory
-	return []error{}
-}
-
-func (cd *chartDir) exists() error {
-	exists, err := dirExists(*cd.path)
-	if err != nil {
-		return err
-	}
-	if !exists {
-		return fmt.Errorf("'%s' does not exist", *cd.path)
-	}
-	return nil
+func newViolation(severity int, path string, err error) violation {
+	return violation{Severity: severity, Path: path, Err: err}
 }

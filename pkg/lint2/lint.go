@@ -16,29 +16,54 @@ limitations under the License.
 
 package lint2
 
-type validator func() error
+import (
+	"k8s.io/helm/pkg/lint2/validations"
+	"path"
+)
 
-type linter interface {
-	Load() error
-	Lint() []error
+// Severity indicates the severity of a Violation.
+const (
+	// UnknownSev indicates that the severity of the error is unknown, and should not stop processing.
+	UnknownSev = iota
+	// InfoSev indicates information, for example missing values.yaml file
+	InfoSev
+	// WarningSev indicates that something does not meet code standards, but will likely function.
+	WarningSev
+	// ErrorSev indicates that something will not likely function.
+	ErrorSev
+)
+
+// sev matches the *Sev states.
+var sev = []string{"UNKNOWN", "INFO", "WARNING", "ERROR"}
+
+type runnerFunc func()
+
+type linterFunc func(path string) error
+
+// All lints all of the relevant files in `chartPath`
+func All(chartPath string) result {
+	res := newResult(chartPath)
+	chartFilePath := path.Join(chartPath, "Chart.yaml")
+
+	//List of linters with paths and severity levels
+	runners := []runnerFunc{
+		runner(res, ErrorSev, chartFilePath, validations.NotDir),
+	}
+
+	for _, r := range runners {
+		r()
+	}
+	return res
 }
 
-// Lint lints the chart files that exist at the given path
-func Lint(chartPath *string) []error {
-	linters := []linter{
-		newChartDir(chartPath),
-		newChartFile(chartPath),
-	}
-	var violations []error
-	for _, l := range linters {
-		if loadErr := l.Load(); loadErr != nil {
-			violations = append(violations, loadErr)
-			// Could not load, skip linting
-			continue
-		}
-		if lintErrs := l.Lint(); lintErrs != nil {
-			violations = append(violations, lintErrs...)
+func runner(res result, sev int, path string, lin linterFunc) runnerFunc {
+	return func() {
+		if err := lin(path); err != nil {
+			res.Violations = append(res.Violations, newViolation(sev, path, err))
+
+			if sev > res.HighestSeverity {
+				res.HighestSeverity = sev
+			}
 		}
 	}
-	return violations
 }
