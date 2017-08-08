@@ -28,8 +28,7 @@ import (
 	"github.com/spf13/cobra"
 
 	"k8s.io/helm/pkg/chartutil"
-	"k8s.io/helm/pkg/lint"
-	"k8s.io/helm/pkg/lint/support"
+	"k8s.io/helm/pkg/lint2"
 )
 
 var longLintHelp = `
@@ -74,30 +73,30 @@ var errLintNoChart = errors.New("No chart found for linting (missing Chart.yaml)
 func (l *lintCmd) run() error {
 	var lowestTolerance int
 	if l.strict {
-		lowestTolerance = support.WarningSev
+		lowestTolerance = lint2.WarningSev
 	} else {
-		lowestTolerance = support.ErrorSev
+		lowestTolerance = lint2.ErrorSev
 	}
 
 	var total int
 	var failures int
 	for _, path := range l.paths {
-		if linter, err := lintChart(path); err != nil {
+		if result, err := lintChart(path); err != nil {
 			fmt.Println("==> Skipping", path)
 			fmt.Println(err)
 		} else {
 			fmt.Println("==> Linting", path)
 
-			if len(linter.Messages) == 0 {
+			if len(result.Violations) == 0 {
 				fmt.Println("Lint OK")
 			}
 
-			for _, msg := range linter.Messages {
+			for _, msg := range result.Violations {
 				fmt.Println(msg)
 			}
 
 			total = total + 1
-			if linter.HighestSeverity >= lowestTolerance {
+			if result.HighestSeverity >= lowestTolerance {
 				failures = failures + 1
 			}
 		}
@@ -114,25 +113,25 @@ func (l *lintCmd) run() error {
 	return nil
 }
 
-func lintChart(path string) (support.Linter, error) {
+func lintChart(path string) (lint2.Result, error) {
 	var chartPath string
-	linter := support.Linter{}
+	result := lint2.Result{}
 
 	if strings.HasSuffix(path, ".tgz") {
 		tempDir, err := ioutil.TempDir("", "helm-lint")
 		if err != nil {
-			return linter, err
+			return result, err
 		}
 		defer os.RemoveAll(tempDir)
 
 		file, err := os.Open(path)
 		if err != nil {
-			return linter, err
+			return result, err
 		}
 		defer file.Close()
 
 		if err = chartutil.Expand(tempDir, file); err != nil {
-			return linter, err
+			return result, err
 		}
 
 		base := strings.Split(filepath.Base(path), "-")[0]
@@ -143,8 +142,8 @@ func lintChart(path string) (support.Linter, error) {
 
 	// Guard: Error out of this is not a chart.
 	if _, err := os.Stat(filepath.Join(chartPath, "Chart.yaml")); err != nil {
-		return linter, errLintNoChart
+		return result, errLintNoChart
 	}
 
-	return lint.All(chartPath), nil
+	return lint2.Lint(chartPath)
 }

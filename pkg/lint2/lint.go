@@ -16,9 +16,13 @@ limitations under the License.
 
 package lint2
 
-// Severity indicatest the severity of a Message.
+import (
+	"path"
+)
+
+// Severity indicates the Severity of a Message.
 const (
-	// UnknownSev indicates that the severity of the error is unknown, and should not stop processing.
+	// UnknownSev indicates that the Severity of the error is unknown, and should not stop processing.
 	UnknownSev = iota
 	// InfoSev indicates information, for example missing values.yaml file
 	InfoSev
@@ -31,13 +35,31 @@ const (
 // sev matches the *Sev states.
 var sev = []string{"UNKNOWN", "INFO", "WARNING", "ERROR"}
 
-type linterFn func() error
-
-type scoredLinter struct {
-	severity int
-	linter   linterFn
+type lintableInt interface {
+	Load() error
+	Lint() []Violation
+	HighestSeverity() int
 }
 
-func newScoredLinter(severity int, linter linterFn) scoredLinter {
-	return scoredLinter{severity, linter}
+type linterFn func() error
+type loaderFn func() error
+
+func Lint(chartDir string) (Result, error) {
+	result := newResult()
+
+	lintables := []lintableInt{
+		newChartFile(path.Join(chartDir, "Chart.yaml")),
+	}
+
+	for _, lintable := range lintables {
+		if err := lintable.Load(); err != nil {
+			return result, err
+		}
+		violations := lintable.Lint()
+		result.Violations = append(result.Violations, violations...)
+		if lintable.HighestSeverity() > result.HighestSeverity {
+			result.HighestSeverity = lintable.HighestSeverity()
+		}
+	}
+	return result, nil
 }

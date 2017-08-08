@@ -16,12 +16,11 @@ limitations under the License.
 
 package lint2
 
-type Violation struct {
-	severity int
-	path     string
-	err      error
+type scoredLinter struct {
+	Severity int
+	Linter   linterFn
 }
 
-func newViolation(severity int, path string, err error) Violation {
-	return Violation{severity, path, err}
+func newScoredLinter(severity int, linter linterFn) scoredLinter {
+	return scoredLinter{severity, linter}
 }

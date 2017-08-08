@@ -30,27 +30,30 @@ import (
 )
 
 type chartFile struct {
-	Violations      []violation
-	HighestSeverity int
+	violations      []Violation
+	highestSeverity int
 	path            string
 	metadata        *chart.Metadata
 }
 
 func newChartFile(path string) *chartFile {
-	return &chartFile{path: path, HighestSeverity: UnknownSev}
+	return &chartFile{path: path, highestSeverity: UnknownSev}
 }
 
 func (cf *chartFile) Load() error {
-	if err := cf.checkNotDir(); err != nil {
-		return err
+	loaders := []loaderFn{
+		cf.checkNotDir,
+		cf.parse,
 	}
-	if err := cf.parse(); err != nil {
-		return err
+	for _, l := range loaders {
+		if err := l(); err != nil {
+			return err
+		}
 	}
 	return nil
 }
 
-func (cf *chartFile) Lint() {
+func (cf *chartFile) Lint() []Violation {
 	scoredLinters := []scoredLinter{
 		newScoredLinter(ErrorSev, cf.lintName),
 		newScoredLinter(ErrorSev, cf.lintDirName),
@@ -63,11 +66,19 @@ func (cf *chartFile) Lint() {
 	}
 
 	for _, sc := range scoredLinters {
-		if err := sc.linter(); err != nil {
-			v := newViolation(sc.severity, cf.path, err)
-			cf.Violations = append(cf.Violations, v)
+		if err := sc.Linter(); err != nil {
+			v := newViolation(sc.Severity, cf.path, err)
+			cf.violations = append(cf.violations, v)
+			if sc.Severity > cf.highestSeverity {
+				cf.highestSeverity = sc.Severity
+			}
 		}
 	}
+	return cf.violations
+}
+
+func (cf *chartFile) HighestSeverity() int {
+	return cf.highestSeverity
 }
 
 func (cf *chartFile) checkNotDir() error {
