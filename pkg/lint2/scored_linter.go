@@ -18,9 +18,9 @@ package lint2
 
 type scoredLinter struct {
 	Severity int
-	Linter   linterFn
+	Linter   linter
 }
 
-func newScoredLinter(severity int, linter linterFn) scoredLinter {
-	return scoredLinter{severity, linter}
+func newScoredLinter(s int, l linter) scoredLinter {
+	return scoredLinter{s, l}
 }

@@ -33,5 +33,4 @@ func TestLintChart(t *testing.T) {
 	if _, err := lintChart(archivedChartPath); err != nil {
 		t.Errorf("%s", err)
 	}
-
 }

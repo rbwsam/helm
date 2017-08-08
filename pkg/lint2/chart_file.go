@@ -30,7 +30,6 @@ import (
 )
 
 type chartFile struct {
-	violations      []Violation
 	highestSeverity int
 	path            string
 	metadata        *chart.Metadata
@@ -41,7 +40,7 @@ func newChartFile(path string) *chartFile {
 }
 
 func (cf *chartFile) Load() error {
-	loaders := []loaderFn{
+	loaders := []loader{
 		cf.checkNotDir,
 		cf.parse,
 	}
@@ -64,17 +63,18 @@ func (cf *chartFile) Lint() []Violation {
 		newScoredLinter(InfoSev, cf.lintIconPresence),
 		newScoredLinter(ErrorSev, cf.lintIconURL),
 	}
+	violations := []Violation{}
 
 	for _, sc := range scoredLinters {
 		if err := sc.Linter(); err != nil {
 			v := newViolation(sc.Severity, cf.path, err)
-			cf.violations = append(cf.violations, v)
+			violations = append(violations, v)
 			if sc.Severity > cf.highestSeverity {
 				cf.highestSeverity = sc.Severity
 			}
 		}
 	}
-	return cf.violations
+	return violations
 }
 
 func (cf *chartFile) HighestSeverity() int {

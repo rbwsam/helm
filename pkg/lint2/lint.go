@@ -35,20 +35,21 @@ const (
 // sev matches the *Sev states.
 var sev = []string{"UNKNOWN", "INFO", "WARNING", "ERROR"}
 
-type lintableInt interface {
+type lintable interface {
 	Load() error
 	Lint() []Violation
 	HighestSeverity() int
 }
 
-type linterFn func() error
-type loaderFn func() error
+type linter func() error
+type loader func() error
 
 func Lint(chartDir string) (Result, error) {
 	result := newResult()
 
-	lintables := []lintableInt{
+	lintables := []lintable{
 		newChartFile(path.Join(chartDir, "Chart.yaml")),
+		newValuesFile(path.Join(chartDir, "values.yaml")),
 	}
 
 	for _, lintable := range lintables {
