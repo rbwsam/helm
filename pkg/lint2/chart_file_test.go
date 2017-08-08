@@ -48,7 +48,8 @@ func TestChartFile_Load_isNotYaml(t *testing.T) {
 func TestChartFile_Lint(t *testing.T) {
 	cf := newChartFile("testdata/albatross/Chart.yaml")
 	if assert.Nil(t, cf.Load()) {
-		violations := cf.Lint()
+		violations, highestSeverity := cf.Lint()
 		assert.Empty(t, violations)
+		assert.Equal(t, UnknownSev, highestSeverity)
 	}
 }

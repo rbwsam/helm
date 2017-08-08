@@ -22,33 +22,34 @@ import (
 )
 
 func TestValuesFile_Load(t *testing.T) {
-	cf := newChartFile("testdata/albatross/values.yaml")
-	err := cf.Load()
+	vf := newValuesFile("testdata/albatross/values.yaml")
+	err := vf.Load()
 	assert.Nil(t, err)
 }
 
 func TestValuesFile_Load_missing(t *testing.T) {
-	cf := newChartFile("testdata/albatross/asdf.yaml")
-	err := cf.Load()
+	vf := newValuesFile("testdata/albatross/asdf.yaml")
+	err := vf.Load()
 	assert.EqualError(t, err, "open testdata/albatross/asdf.yaml: no such file or directory")
 }
 
 func TestValuesFile_Load_isDir(t *testing.T) {
-	cf := newChartFile("testdata/albatross")
-	err := cf.Load()
+	vf := newValuesFile("testdata/albatross")
+	err := vf.Load()
 	assert.EqualError(t, err, "should be a file, not a directory")
 }
 
 func TestValuesFile_Load_isNotYaml(t *testing.T) {
-	cf := newChartFile("testdata/albatross/templates/_helpers.tpl")
-	err := cf.Load()
+	vf := newValuesFile("testdata/albatross/templates/_helpers.tpl")
+	err := vf.Load()
 	assert.EqualError(t, err, "error converting YAML to JSON: yaml: did not find expected alphabetic or numeric character")
 }
 
 func TestValuesFile_Lint(t *testing.T) {
-	cf := newChartFile("testdata/albatross/Chart.yaml")
-	if assert.Nil(t, cf.Load()) {
-		violations := cf.Lint()
+	vf := newValuesFile("testdata/albatross/Chart.yaml")
+	if assert.Nil(t, vf.Load()) {
+		violations, highestSeverity := vf.Lint()
 		assert.Empty(t, violations)
+		assert.Equal(t, UnknownSev, highestSeverity)
 	}
 }

@@ -18,7 +18,6 @@ package lint2
 
 import (
 	"errors"
-	"fmt"
 	"k8s.io/helm/pkg/chartutil"
 	"os"
 )
@@ -44,12 +43,8 @@ func (vf *valuesFile) Load() error {
 	return nil
 }
 
-func (vf *valuesFile) Lint() []Violation {
-	return []Violation{}
-}
-
-func (vf *valuesFile) HighestSeverity() int {
-	return UnknownSev
+func (vf *valuesFile) Lint() ([]Violation, int) {
+	return []Violation{}, UnknownSev
 }
 
 func (vf *valuesFile) checkNotDir() error {
@@ -63,8 +58,5 @@ func (vf *valuesFile) checkNotDir() error {
 
 func (vf *valuesFile) parse() error {
 	_, err := chartutil.ReadValuesFile(vf.path)
-	if err != nil {
-		return fmt.Errorf("unable to parse YAML\n\t%s", err)
-	}
-	return nil
+	return err
 }

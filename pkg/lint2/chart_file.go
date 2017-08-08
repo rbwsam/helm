@@ -30,13 +30,12 @@ import (
 )
 
 type chartFile struct {
-	highestSeverity int
-	path            string
-	metadata        *chart.Metadata
+	path     string
+	metadata *chart.Metadata
 }
 
 func newChartFile(path string) *chartFile {
-	return &chartFile{path: path, highestSeverity: UnknownSev}
+	return &chartFile{path: path}
 }
 
 func (cf *chartFile) Load() error {
@@ -52,7 +51,7 @@ func (cf *chartFile) Load() error {
 	return nil
 }
 
-func (cf *chartFile) Lint() []Violation {
+func (cf *chartFile) Lint() ([]Violation, int) {
 	scoredLinters := []scoredLinter{
 		newScoredLinter(ErrorSev, cf.lintName),
 		newScoredLinter(ErrorSev, cf.lintDirName),
@@ -64,21 +63,18 @@ func (cf *chartFile) Lint() []Violation {
 		newScoredLinter(ErrorSev, cf.lintIconURL),
 	}
 	violations := []Violation{}
+	highestSeverity := UnknownSev
 
 	for _, sc := range scoredLinters {
 		if err := sc.Linter(); err != nil {
 			v := newViolation(sc.Severity, cf.path, err)
 			violations = append(violations, v)
-			if sc.Severity > cf.highestSeverity {
-				cf.highestSeverity = sc.Severity
+			if sc.Severity > highestSeverity {
+				highestSeverity = sc.Severity
 			}
 		}
 	}
-	return violations
-}
-
-func (cf *chartFile) HighestSeverity() int {
-	return cf.highestSeverity
+	return violations, highestSeverity
 }
 
 func (cf *chartFile) checkNotDir() error {

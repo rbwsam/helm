@@ -37,8 +37,7 @@ var sev = []string{"UNKNOWN", "INFO", "WARNING", "ERROR"}
 
 type lintable interface {
 	Load() error
-	Lint() []Violation
-	HighestSeverity() int
+	Lint() ([]Violation, int)
 }
 
 type linter func() error
@@ -50,16 +49,17 @@ func Lint(chartDir string) (Result, error) {
 	lintables := []lintable{
 		newChartFile(path.Join(chartDir, "Chart.yaml")),
 		newValuesFile(path.Join(chartDir, "values.yaml")),
+		newTemplateDir(path.Join(chartDir, "templates")),
 	}
 
 	for _, lintable := range lintables {
 		if err := lintable.Load(); err != nil {
 			return result, err
 		}
-		violations := lintable.Lint()
+		violations, highestSeverity := lintable.Lint()
 		result.Violations = append(result.Violations, violations...)
-		if lintable.HighestSeverity() > result.HighestSeverity {
-			result.HighestSeverity = lintable.HighestSeverity()
+		if highestSeverity > result.HighestSeverity {
+			result.HighestSeverity = highestSeverity
 		}
 	}
 	return result, nil
